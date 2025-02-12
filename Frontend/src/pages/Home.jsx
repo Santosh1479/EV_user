@@ -54,14 +54,13 @@ const Home = () => {
       </div>
       <div
         ref={panelRef}
-        className="fixed w-full z-10 bottom-0 translate-y-full rounded-tl-3xl border-y-2 border-black rounded-tr-3xl bg-red-600 px-3 py-3 gap-3"
+        className="fixed w-full z-10 bottom-0 translate-y-full rounded-tl-3xl border-y-2 border-black rounded-tr-3xl bg-red-600 px-3 py-3 gap-3 overflow-y-auto h-1/2"
       >
         <LocationSearchPanel
           setPanelOpen={setPanelOpen}
           setSelect={(location) => console.log('Selected location:', location)}
         />
       </div>
-      
     </div>
   );
 };

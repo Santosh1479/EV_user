@@ -1,19 +1,23 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const LocationSearchPanel = ({ setPanelOpen, setSelect }) => {
   const [suggestions, setSuggestions] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNearestLocations = async (userLocation) => {
       try {
-        console.log('Fetching nearest locations for:', userLocation);
+        const token = localStorage.getItem('token'); // or use cookies if you store the token there
         const { data } = await axios.get("http://localhost:3000/maps/get-nearest-locations", {
           params: {
             origin: `${userLocation.latitude},${userLocation.longitude}`,
           },
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         });
-        console.log('Data received:', data);
         if (Array.isArray(data)) {
           setSuggestions(data);
         } else {
@@ -32,14 +36,22 @@ const LocationSearchPanel = ({ setPanelOpen, setSelect }) => {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
             };
+            console.log(`User Location: ${userLocation.latitude}, ${userLocation.longitude}`);
             fetchNearestLocations(userLocation);
           },
           (error) => {
             console.error("Error getting user location:", error);
+            alert("Unable to retrieve your location. Please ensure location services are enabled.");
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 10000
           }
         );
       } else {
         console.error("Geolocation is not supported by this browser.");
+        alert("Geolocation is not supported by your browser.");
       }
     };
 
@@ -49,10 +61,11 @@ const LocationSearchPanel = ({ setPanelOpen, setSelect }) => {
   const handleSuggestionClick = (suggestion) => {
     setSelect(suggestion);
     setPanelOpen(false);
+    navigate(`/page?latitude=${suggestion.latitude}&longitude=${suggestion.longitude}`);
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center overflow-y-auto h-full">
       <i
         onClick={() => {
           setPanelOpen(false);
