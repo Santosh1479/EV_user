@@ -97,7 +97,16 @@ const Home = () => {
     [panelOpen]
   );
 
-  useEffect(() => {
+  const requestMicrophonePermission = async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log("Microphone permission granted");
+    } catch (error) {
+      console.error("Microphone permission denied", error);
+    }
+  };
+
+  const initializeRecognition = () => {
     const recognition = new (window.SpeechRecognition ||
       window.webkitSpeechRecognition)();
     recognitionRef.current = recognition;
@@ -110,47 +119,29 @@ const Home = () => {
         event.results[event.results.length - 1][0].transcript.trim();
       console.log(`Voice command: ${transcript}`);
 
-      if (transcript.toLowerCase() === "search") {
+      if (
+        transcript.toLowerCase().includes("find charging stations") ||
+        transcript.toLowerCase().includes("find") ||
+        transcript.toLowerCase().includes("search") ||
+        transcript.toLowerCase().includes("search charging stations")
+      ) {
         searchButtonRef.current.click();
-      }
-    };
-
-    recognition.onspeechend = () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-        setTimeout(() => {
-          if (micOn) {
-            recognitionRef.current.start();
-          }
-        }, 1000); // Add a delay before restarting
-      }
-    };
-
-    recognition.onnomatch = () => {
-      console.log("Speech not recognized");
-    };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error detected: " + event.error);
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-        setTimeout(() => {
-          if (micOn) {
-            recognitionRef.current.start();
-          }
-        }, 1000); // Add a delay before restarting
+        setMicOn(false);
       }
     };
 
     recognition.onend = () => {
-      if (recognitionRef.current && micOn) {
-        setTimeout(() => {
-          recognitionRef.current.start(); // Restart recognition if it stops
-        }, 1000); // Add a delay before restarting
+      if (micOn) {
+        recognition.start(); // Restart recognition if mic is on
       }
     };
 
     recognition.start();
+  };
+
+  useEffect(() => {
+    requestMicrophonePermission();
+    initializeRecognition();
 
     return () => {
       if (recognitionRef.current) {
@@ -167,13 +158,17 @@ const Home = () => {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           };
-          console.log(`User Location: ${location.latitude}, ${location.longitude}`);
+          console.log(
+            `User Location: ${location.latitude}, ${location.longitude}`
+          );
           setUserLocation(location);
           setPanelOpen(true);
         },
         (error) => {
           console.error("Error getting user location:", error);
-          alert("Unable to retrieve your location. Please ensure location services are enabled.");
+          alert(
+            "Unable to retrieve your location. Please ensure location services are enabled."
+          );
         },
         {
           enableHighAccuracy: true,
@@ -223,7 +218,7 @@ const Home = () => {
       >
         <LocationSearchPanel
           setPanelOpen={setPanelOpen}
-          setSelect={(location) => console.log('Selected location:', location)}
+          setSelect={(location) => console.log("Selected location:", location)}
           userLocation={userLocation}
           setMicOn={setMicOn}
         />
