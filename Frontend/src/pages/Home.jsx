@@ -76,7 +76,7 @@ import LocationSearchPanel from "../components/LocationSearchPanel";
 const Home = () => {
   const [panelOpen, setPanelOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
-  const [micOn, setMicOn] = useState(true);
+  const [micOn, setMicOn] = useState(false);
   const panelRef = useRef(null);
   const searchButtonRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -101,6 +101,7 @@ const Home = () => {
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       console.log("Microphone permission granted");
+      setMicOn(true);
     } catch (error) {
       console.error("Microphone permission denied", error);
     }
@@ -135,8 +136,6 @@ const Home = () => {
         recognition.start(); // Restart recognition if mic is on
       }
     };
-
-    recognition.start();
   };
 
   useEffect(() => {
@@ -148,6 +147,14 @@ const Home = () => {
         recognitionRef.current.stop();
       }
     };
+  }, []);
+
+  useEffect(() => {
+    if (micOn) {
+      recognitionRef.current.start();
+    } else {
+      recognitionRef.current.stop();
+    }
   }, [micOn]);
 
   const getUserLocation = () => {
@@ -172,8 +179,8 @@ const Home = () => {
         },
         {
           enableHighAccuracy: true,
-          maximumAge: 5000, // Cache the position for 5 seconds
-          timeout: 20000, // Wait up to 20 seconds for a response
+          maximumAge: 0,
+          timeout: 10000,
         }
       );
     } else {
