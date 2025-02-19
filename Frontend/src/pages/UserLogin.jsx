@@ -6,8 +6,8 @@ import { UserDataContext } from "../context/UserContext";
 import axios from "axios";
 
 const UserLogin = () => {
-  const [email, setEmail] = useState("");
-  const [pass, setPass] = useState("");
+  const [email, setEmail] = useState("test@test.com");
+  const [pass, setPass] = useState("testpass");
   const [userData, setUserData] = useState({});
   const { user, setUser } = useContext(UserDataContext);
   const navigate = useNavigate();
