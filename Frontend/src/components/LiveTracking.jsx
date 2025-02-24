@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { LoadScript, GoogleMap, Marker } from '@react-google-maps/api'
+import React, { useState, useEffect } from 'react';
+import { LoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 
 const containerStyle = {
     width: '100%',
@@ -12,7 +12,7 @@ const center = {
 };
 
 const LiveTracking = () => {
-    const [ currentPosition, setCurrentPosition ] = useState(center);
+    const [currentPosition, setCurrentPosition] = useState(center);
 
     useEffect(() => {
         navigator.geolocation.getCurrentPosition((position) => {
@@ -51,6 +51,7 @@ const LiveTracking = () => {
 
         const intervalId = setInterval(updatePosition, 1000); // Update every 10 seconds
 
+        return () => clearInterval(intervalId);
     }, []);
 
     return (
@@ -63,7 +64,7 @@ const LiveTracking = () => {
                 <Marker position={currentPosition} />
             </GoogleMap>
         </LoadScript>
-    )
-}
+    );
+};
 
-export default LiveTracking
+export default LiveTracking;

@@ -1,24 +1,20 @@
-const Car = require('../models/car.model');
+const carService = require('../services/car.service');
 
 exports.updateCharge = async (req, res) => {
   try {
-    const { email, charge } = req.body;
-    const car = await Car.findOneAndUpdate({ email }, { charge }, { new: true, upsert: true });
+    const { userId, charge } = req.body;
+    const car = await carService.updateCharge(userId, charge);
     res.status(200).json(car);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update charge' });
   }
 };
 
-exports.getChargeByEmail = async (req, res) => {
+exports.getChargeByUserId = async (req, res) => {
   try {
-    const { email } = req.query;
-    const car = await Car.findOne({ email });
-    if (car) {
-      res.status(200).json({ charge: car.charge });
-    } else {
-      res.status(404).json({ error: 'Car not found' });
-    }
+    const { userId } = req.query;
+    const charge = await carService.getChargeByUserId(userId);
+    res.status(200).json({ charge });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch charge data' });
   }

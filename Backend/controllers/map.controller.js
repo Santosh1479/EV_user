@@ -1,7 +1,6 @@
-const mapService = require('../services/maps.service');
 const { validationResult } = require('express-validator');
 const ChargingStation = require('../models/chargingStation.model');
-const haversine = require('haversine-distance');
+const axios = require('axios');
 
 module.exports.getNearestLocations = async (req, res, next) => {
     try {
@@ -11,19 +10,20 @@ module.exports.getNearestLocations = async (req, res, next) => {
         console.log(`Origin: ${originLat}, ${originLng}`);
 
         const stations = await ChargingStation.find();
-        const distances = stations.map(station => {
-            const distance = haversine(
-                { latitude: originLat, longitude: originLng },
-                { latitude: station.latitude, longitude: station.longitude }
-            ) / 1000; // Convert to kilometers
+        const destinations = stations.map(station => `${station.latitude},${station.longitude}`).join('|');
 
-            console.log(`Station: ${station.name}, Distance: ${distance}`);
-
-            return {
-                ...station.toObject(),
-                distance: parseFloat(distance.toFixed(2)) // Round to 2 decimal places
-            };
+        const response = await axios.get(`https://maps.googleapis.com/maps/api/distancematrix/json`, {
+            params: {
+                origins: `${originLat},${originLng}`,
+                destinations,
+                key: process.env.GOOGLE_MAPS_API_KEY
+            }
         });
+
+        const distances = response.data.rows[0].elements.map((element, index) => ({
+            ...stations[index].toObject(),
+            distance: element.distance.value / 1000 // Convert to kilometers
+        }));
 
         distances.sort((a, b) => a.distance - b.distance);
         res.json(distances);

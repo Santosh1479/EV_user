@@ -151,10 +151,22 @@ const Home = () => {
       const transcript =
         event.results[event.results.length - 1][0].transcript.trim();
       console.log(`Voice command: ${transcript}`);
+
+      if (
+        transcript.toLowerCase().includes("find charging stations") ||
+        transcript.toLowerCase().includes("find") ||
+        transcript.toLowerCase().includes("search") ||
+        transcript.toLowerCase().includes("search charging stations")
+      ) {
+        searchButtonRef.current.click();
+        setMicOn(false);
+      }
     };
 
     recognition.onend = () => {
-      console.log("Speech recognition ended");
+      if (micOn) {
+        recognition.start(); // Restart recognition if mic is on
+      }
     };
   };
 
@@ -181,17 +193,31 @@ const Home = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          const location = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
-          });
+          };
+          console.log(
+            `User Location: ${location.latitude}, ${location.longitude}`
+          );
+          setUserLocation(location);
+          setPanelOpen(true);
         },
         (error) => {
-          console.error("Error getting user location", error);
+          console.error("Error getting user location:", error);
+          alert(
+            "Unable to retrieve your location. Please ensure location services are enabled."
+          );
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 5000, // Cache the position for 5 seconds
+          timeout: 20000, // Wait up to 20 seconds for a response
         }
       );
     } else {
-      console.error("Geolocation is not supported by this browser");
+      console.error("Geolocation is not supported by this browser.");
+      alert("Geolocation is not supported by your browser.");
     }
   };
 
@@ -201,11 +227,11 @@ const Home = () => {
         <ul className="flex gap-4">
           <img className="w-20 rounded-3xl" src="/icons/logo.png" alt="logo" />
         </ul>
-        {charge !== null && (
-          <div className="text-white">
-            <p>Charge: {charge}%</p>
-          </div>
-        )}
+
+        <div className="bg-white w-20 h-10 flex items-center justify-center rounded-xl mr-4">
+          <i className="ri-battery-2-line text-2xl font-semibold"></i>
+          <span className=" font-bold">{charge}%</span>
+        </div>
       </div>
       <div className="h-screen object-contain bg-[url(https://pbs.twimg.com/media/Gg3YpqFaMAAn58B?format=jpg&name=large)] bg-opacity-55 flex justify-center items-center">
         <div className="float flex flex-col bg-red-600 h-2/5 w-4/5 text-white rounded-3xl text-center items-center gap-4">

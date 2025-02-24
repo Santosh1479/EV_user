@@ -72,15 +72,10 @@
 // export default Page;
 
 import React, { useEffect, useRef } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "leaflet-routing-machine";
-import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import { useLocation } from "react-router-dom";
 
 const Page = () => {
   const mapRef = useRef(null);
-  const markerRef = useRef(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -94,28 +89,35 @@ const Page = () => {
     console.log(`Destination: ${destinationLat}, ${destinationLng}`);
 
     if (!mapRef.current) {
-      mapRef.current = L.map("map").setView([latitude, longitude], 15);
+      mapRef.current = new window.google.maps.Map(document.getElementById("map"), {
+        center: { lat: latitude, lng: longitude },
+        zoom: 15,
+      });
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap contributors",
-      }).addTo(mapRef.current);
+      new window.google.maps.Marker({
+        position: { lat: latitude, lng: longitude },
+        map: mapRef.current,
+      });
+
+      const directionsService = new window.google.maps.DirectionsService();
+      const directionsRenderer = new window.google.maps.DirectionsRenderer();
+      directionsRenderer.setMap(mapRef.current);
+
+      directionsService.route(
+        {
+          origin: { lat: latitude, lng: longitude },
+          destination: { lat: destinationLat, lng: destinationLng },
+          travelMode: window.google.maps.TravelMode.DRIVING,
+        },
+        (response, status) => {
+          if (status === "OK") {
+            directionsRenderer.setDirections(response);
+          } else {
+            console.error("Directions request failed due to " + status);
+          }
+        }
+      );
     }
-
-    if (markerRef.current) {
-      markerRef.current.setLatLng([latitude, longitude]);
-    } else {
-      markerRef.current = L.marker([latitude, longitude], {
-        draggable: false,
-      }).addTo(mapRef.current);
-    }
-
-    L.Routing.control({
-      waypoints: [
-        L.latLng(latitude, longitude),
-        L.latLng(destinationLat, destinationLng),
-      ],
-      routeWhileDragging: false,
-    }).addTo(mapRef.current);
   }, [location]);
 
   return (

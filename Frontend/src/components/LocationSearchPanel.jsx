@@ -178,14 +178,7 @@ const LocationSearchPanel = ({ setPanelOpen, setSelect, userLocation, setMicOn }
         if (selectedStation) {
           handleSuggestionClick(selectedStation);
         } else {
-          const synth = window.speechSynthesis;
-          const utterance = new SpeechSynthesisUtterance(
-            `Station ${transcript} not found. Please try again.`
-          );
-          synth.speak(utterance);
-          utterance.onend = () => {
-            startListeningForSelection(stations);
-          };
+          console.error("No matching station found");
         }
       };
 
