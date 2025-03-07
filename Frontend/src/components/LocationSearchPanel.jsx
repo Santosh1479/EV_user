@@ -166,13 +166,20 @@ const LocationSearchPanel = ({ setPanelOpen, setSelect, userLocation, setMicOn }
       recognition.interimResults = false;
       recognition.lang = "en-US";
 
-      recognition.onresult = (event) => {
+      recognition.onresult = async (event) => {
         const transcript =
           event.results[event.results.length - 1][0].transcript.trim();
         console.log(`Voice command: ${transcript}`);
 
+        const stationNames = stations.map(station => station.name);
+        const response = await axios.post("http://localhost:5000/predict_station", {
+          text: transcript,
+          stations: stationNames
+        });
+
+        const selectedStationName = response.data.station;
         const selectedStation = stations.find(station =>
-          station.name.toLowerCase() === transcript.toLowerCase()
+          station.name.toLowerCase() === selectedStationName.toLowerCase()
         );
 
         if (selectedStation) {
